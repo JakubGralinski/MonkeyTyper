@@ -1,0 +1,48 @@
+{
+  "resolution": {
+    "width": 1660,
+    "height": 1440
+  },
+  "wordSpeed": 0.6,
+  "maxWords": 7,
+  "spawnInterval": 3.0,
+  "speedIncrementInterval": 0.00001,
+  "menuButtonsHoverColor":  [255,0,0,255],
+  "fonts": [
+    "/Users/jakubgralinski/CLionProjects/MonkeyTyper/fonts/FiraCode-Bold.ttf",
+    "/Users/jakubgralinski/CLionProjects/MonkeyTyper/fonts/6809 chargen.ttf",
+    "/Users/jakubgralinski/CLionProjects/MonkeyTyper/fonts/Roboto-BlackItalic.ttf"
+  ],
+  "dictionaries": {
+    "cs": [
+      "algorithm", "array", "binary", "boolean", "bug", "byte", "cache", "class",
+      "compiler", "database", "debug", "encryption", "error", "function", "hash",
+      "integer", "interface", "loop", "memory", "object", "operator", "pointer",
+      "protocol", "query", "recursion", "runtime", "script", "stack", "syntax",
+      "thread", "variable", "vector", "virtual", "web", "server", "client", "router",
+      "firewall", "packet", "SQL", "Python", "Java", "JavaScript", "HTML", "CSS",
+      "API", "framework", "password", "login", "logout", "network", "login", "cloud",
+      "data", "debugger", "exception", "compile", "build", "deploy", "update",
+      "install", "download", "upload", "connect", "disconnect", "binary", "decimal",
+      "hexadecimal", "link", "file", "folder", "directory", "path", "search",
+      "filter", "sort", "order", "open", "close", "read", "write", "execute",
+      "admin", "user", "group", "permission", "access", "backup", "restore",
+      "recover", "monitor", "control", "status", "report", "log", "entry", "exit",
+      "start", "stop", "pause", "resume", "restart", "shutdown", "reboot", "timeout",
+      "retry", "success", "failure", "error", "warning", "alert", "notification",
+      "message", "chat", "email", "address", "port", "domain", "website", "url",
+      "http", "https", "ftp", "ssh", "telnet", "ping", "traceroute", "request",
+      "response", "header", "cookie", "session", "token", "authentication",
+      "authorization", "security", "firewall", "proxy", "vpn", "encryption",
+      "decryption", "hashing", "checksum", "certificate", "key", "public", "private",
+      "signature", "verify", "validation", "verification", "data", "info", "information",
+      "metadata", "schema", "table", "row", "column", "field", "record", "index"
+    ],
+    "fruits": [
+      "apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew",
+      "kiwi", "lemon", "mango", "nectarine", "orange", "papaya", "quince", "raspberry",
+      "strawberry", "tangerine", "ugli", "vanilla", "watermelon", "xigua", "yellow",
+      "zucchini"
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+# Ignore build files
+build/
+cmake-build-debug/
+cmake-build-release/
+*.o
+*.obj
+*.exe
+*.log
+
+# Ignore CLion specific files
+.idea/
+.idea_modules/
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/usage.statistics.xml
+.idea/dictionaries
+.idea/vcs.xml
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
