@@ -14,10 +14,10 @@ public:
     int getPressedItem() { return selectedItemIndex; }
     bool isMouseOver(sf::Vector2i mousePos);
 
+    sf::Text menu[MAX_NUMBER_OF_ITEMS];
 private:
     int selectedItemIndex;
     sf::Font font;
-    sf::Text menu[MAX_NUMBER_OF_ITEMS];
 
     // Title text and animation properties
     sf::Font titleFont;

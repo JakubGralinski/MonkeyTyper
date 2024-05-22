@@ -25,6 +25,67 @@ std::string getRandomWord(std::vector<std::string>& wordList) {
     return wordList[rand() % wordList.size()];
 }
 
+struct ScoreData {
+    std::string playerName;
+    int score;
+    // Add more fields if needed, like date
+};
+
+// Function to compare scores for sorting
+bool compareScores(const ScoreData& a, const ScoreData& b) {
+    return a.score > b.score;
+}
+
+// Function to save score data to a file
+void saveScore(const ScoreData& scoreData) {
+    std::ofstream scoreFile("scores.txt", std::ios::app); // Open file in append mode
+    if (scoreFile.is_open()) {
+        scoreFile << scoreData.playerName << " " << scoreData.score << std::endl;
+        scoreFile.close();
+    } else {
+        std::cerr << "Failed to open score file for writing." << std::endl;
+    }
+}
+
+// Function to load scores from a file
+std::vector<ScoreData> loadScores() {
+    std::vector<ScoreData> scores;
+    std::ifstream scoreFile("scores.txt");
+    if (scoreFile.is_open()) {
+        std::string playerName;
+        int score;
+        while (scoreFile >> playerName >> score) {
+            scores.push_back({playerName, score});
+        }
+        scoreFile.close();
+    } else {
+        std::cerr << "Failed to open score file for reading." << std::endl;
+    }
+    return scores;
+}
+
+void displayScores(Menu& menu) {
+    // Load scores from file
+    std::vector<ScoreData> scores = loadScores();
+
+    // Sort scores in descending order
+    std::sort(scores.begin(), scores.end(), compareScores);
+
+    // Display up to the top 3 scores in the menu
+    int numScores = std::min(static_cast<int>(scores.size()), 3);
+    for (int i = 0; i < numScores; ++i) {
+        std::string scoreStr = std::to_string(scores[i].score);
+        menu.menu[i + 4].setString(scores[i].playerName + ": " + scoreStr);
+    }
+}
+
+// Function to update scores when a game is over
+void updateScores(const ScoreData& scoreData) {
+    // Save the new score
+    saveScore(scoreData);
+}
+
+
 int main() {
     // Read JSON configuration
     std::ifstream configFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/config.json");
@@ -204,15 +265,27 @@ int main() {
             window.display();
         } else if (gameState == GameOver) {
             window.clear();
-            sf::Text gameOverText;
+            ScoreData newScore;
+            newScore.playerName = "Player"; // You can set this dynamically
+            newScore.score = score;
+/*            sf::Text gameOverText;
             gameOverText.setFont(font);
             gameOverText.setCharacterSize(50);
             gameOverText.setFillColor(sf::Color::Red);
             gameOverText.setString("Game Over! Final Score: " + std::to_string(score));
             gameOverText.setPosition(window.getSize().x / 4, window.getSize().y / 2);
             window.draw(gameOverText);
-            window.display();
+            window.display();*/
+
+            updateScores(newScore);
+            displayScores(menu);
+            gameState = ShowingMenu; // Set the game state back to ShowingMenu
         }
+
+        // Draw the menu regardless of the game state
+        /*window.clear();
+        menu.draw(window);
+        window.display();*/
     }
 
     return 0;
