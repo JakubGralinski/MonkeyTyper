@@ -1,7 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#define MAX_NUMBER_OF_ITEMS 4
-
+#include <vector>
 
 class Menu {
 public:
@@ -9,26 +8,27 @@ public:
     ~Menu();
 
     void draw(sf::RenderWindow &window);
-    void MoveUp();
-    void MoveDown();
-    int getPressedItem() { return selectedItemIndex; }
     bool isMouseOver(sf::Vector2i mousePos);
+    void updateScores(const std::vector<std::string>& scores);
+    void displayOptionsMenu(sf::RenderWindow &window);
+    int getPressedItem();
+    int getPressedOptionItem();
+    void moveUp();
+    void moveDown();
+    void selectOptionUp();
+    void selectOptionDown();
 
-    sf::Text menu[MAX_NUMBER_OF_ITEMS];
 private:
-    int selectedItemIndex;
     sf::Font font;
-
-    // Title text and animation properties
-    sf::Font titleFont;
-    sf::Text titleText;
+    sf::Text menu[4];
+    sf::Text optionsItems[3]; // Options menu items
+    int selectedItemIndex;
+    int selectedOptionIndex;
+    sf::Color hoverColor;
+    sf::Clock clock;
     float animationTime;
-    const float animationSpeed = 2.0f;
+    const float animationSpeed = 1.0f;
     const float scaleFactor = 0.05f;
-
-
-    // Hover color
-    sf::Color hoverColor; // Orange
-
-    sf::Clock clock; // Measuring time for animation
+    sf::Text scoreTitleText;
+    sf::Text scoreText[3];
 };

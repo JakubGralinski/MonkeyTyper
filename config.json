@@ -8,6 +8,8 @@
   "spawnInterval": 3.0,
   "speedIncrementInterval": 0.00001,
   "menuButtonsHoverColor":  [255,0,0,255],
+  "buttonPadding": 20.0,
+  "buttonInitialYPosition": 200.0,
   "fonts": [
     "/Users/jakubgralinski/CLionProjects/MonkeyTyper/fonts/FiraCode-Bold.ttf",
     "/Users/jakubgralinski/CLionProjects/MonkeyTyper/fonts/6809 chargen.ttf",

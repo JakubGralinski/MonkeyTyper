@@ -3,9 +3,10 @@
 #include <vector>
 #include <cstdlib>
 #include <ctime>
-#include "Menu.h"
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include "Menu.h"
+#include "OptionsMenu.h"
 
 using json = nlohmann::json;
 
@@ -17,8 +18,10 @@ struct MovingWord {
 
 enum GameState {
     ShowingMenu,
+    EnteringName,
     Playing,
-    GameOver
+    GameOver,
+    Options
 };
 
 std::string getRandomWord(std::vector<std::string>& wordList) {
@@ -28,17 +31,14 @@ std::string getRandomWord(std::vector<std::string>& wordList) {
 struct ScoreData {
     std::string playerName;
     int score;
-    // Add more fields if needed, like date
 };
 
-// Function to compare scores for sorting
 bool compareScores(const ScoreData& a, const ScoreData& b) {
     return a.score > b.score;
 }
 
-// Function to save score data to a file
 void saveScore(const ScoreData& scoreData) {
-    std::ofstream scoreFile("scores.txt", std::ios::app); // Open file in append mode
+    std::ofstream scoreFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/scores.txt", std::ios::app);
     if (scoreFile.is_open()) {
         scoreFile << scoreData.playerName << " " << scoreData.score << std::endl;
         scoreFile.close();
@@ -47,10 +47,9 @@ void saveScore(const ScoreData& scoreData) {
     }
 }
 
-// Function to load scores from a file
 std::vector<ScoreData> loadScores() {
     std::vector<ScoreData> scores;
-    std::ifstream scoreFile("scores.txt");
+    std::ifstream scoreFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/scores.txt");
     if (scoreFile.is_open()) {
         std::string playerName;
         int score;
@@ -64,30 +63,26 @@ std::vector<ScoreData> loadScores() {
     return scores;
 }
 
-void displayScores(Menu& menu) {
-    // Load scores from file
+void updateScores(const ScoreData& newScore) {
     std::vector<ScoreData> scores = loadScores();
-
-    // Sort scores in descending order
+    scores.push_back(newScore);
     std::sort(scores.begin(), scores.end(), compareScores);
+    saveScore(newScore);
+}
 
-    // Display up to the top 3 scores in the menu
-    int numScores = std::min(static_cast<int>(scores.size()), 3);
-    for (int i = 0; i < numScores; ++i) {
-        std::string scoreStr = std::to_string(scores[i].score);
-        menu.menu[i + 4].setString(scores[i].playerName + ": " + scoreStr);
+void displayScores(Menu& menu) {
+    std::vector<ScoreData> scores = loadScores();
+    std::sort(scores.begin(), scores.end(), compareScores);
+    std::vector<std::string> topScores;
+    for (size_t i = 0; i < 3 && i < scores.size(); ++i) {
+        topScores.push_back(scores[i].playerName + ": " + std::to_string(scores[i].score));
     }
+    menu.updateScores(topScores);
 }
-
-// Function to update scores when a game is over
-void updateScores(const ScoreData& scoreData) {
-    // Save the new score
-    saveScore(scoreData);
-}
-
 
 int main() {
-    // Read JSON configuration
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
     std::ifstream configFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/config.json");
     if (!configFile.is_open()) {
         std::cerr << "Failed to open config file." << std::endl;
@@ -98,7 +93,6 @@ int main() {
     configFile >> config;
     configFile.close();
 
-    // Extract configuration parameters from JSON
     int screenWidth = config["resolution"]["width"];
     int screenHeight = config["resolution"]["height"];
     int maxWords = config["maxWords"];
@@ -132,12 +126,25 @@ int main() {
     currentWordDisplay.setCharacterSize(24);
     currentWordDisplay.setPosition(10.f, window.getSize().y - 40.f);
 
+    sf::Text namePrompt;
+    namePrompt.setFont(font);
+    namePrompt.setCharacterSize(24);
+    namePrompt.setString("Enter your nickname:");
+    namePrompt.setPosition(screenWidth / 2.0f - namePrompt.getGlobalBounds().width / 2.0f, screenHeight / 2.0f - 30.f);
+
+    sf::Text nameInput;
+    nameInput.setFont(font);
+    nameInput.setCharacterSize(24);
+    nameInput.setPosition(screenWidth / 2.0f, screenHeight / 2.0f);
+
     GameState gameState = ShowingMenu;
     Menu menu(window.getSize().x, window.getSize().y);
+    OptionsMenu optionsMenu(window.getSize().x, window.getSize().y);
 
     int score = 0;
     int lives = 3;
     std::string currentWord;
+    std::string playerName;
 
     sf::Clock clock;
     float elapsedTime = 0.0f;
@@ -152,141 +159,221 @@ int main() {
                 window.close();
             }
 
-            if (gameState == ShowingMenu) {
-                if (event.type == sf::Event::MouseButtonPressed) {
-                    if (event.mouseButton.button == sf::Mouse::Left) {
-                        sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-                        if (menu.isMouseOver(mousePos)) {
-                            if (menu.getPressedItem() == 1) { // Adjusted index for "Play"
-                                gameState = Playing;
-                            } else if (menu.getPressedItem() == 2) { // Adjusted index for "Options"
-                                // Handle "Options" if necessary
-                            } else if (menu.getPressedItem() == 3) { // Adjusted index for "Quit"
-                                window.close();
+            switch (gameState) {
+                case ShowingMenu:
+                    if (event.type == sf::Event::MouseButtonPressed) {
+                        if (event.mouseButton.button == sf::Mouse::Left) {
+                            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                            if (menu.isMouseOver(mousePos)) {
+                                switch (menu.getPressedItem()) {
+                                    case 1:
+                                        gameState = EnteringName;
+                                        score = 0;
+                                        lives = 3;
+                                        words.clear();
+                                        currentWord.clear();
+                                        playerName.clear();
+                                        scoreboard.setString("SCORE: " + std::to_string(score));
+                                        livesDisplay.setString("LIVES: " + std::to_string(lives));
+                                        break;
+                                    case 2:
+                                        // Handle "Options" if necessary
+                                        gameState = Options;
+                                        break;
+                                    case 3:
+                                        window.close();
+                                        break;
+                                }
                             }
                         }
                     }
-                }
-            } else if (gameState == Playing) {
-                if (event.type == sf::Event::TextEntered) {
-                    if (event.text.unicode < 128) {
-                        char c = event.text.unicode;
-                        if (c == '\b') {
-                            if (!currentWord.empty()) {
-                                currentWord.pop_back();
+                    break;
+
+                case EnteringName:
+                    if (event.type == sf::Event::TextEntered) {
+                        if (event.text.unicode < 128) {
+                            char c = event.text.unicode;
+                            if (c == '\b') {
+                                if (!playerName.empty()) {
+                                    playerName.pop_back();
+                                }
+                            } else if (c == '\n' || c == '\r') {
+                                if (!playerName.empty()) {
+                                    gameState = Playing;
+                                }
+                            } else {
+                                playerName += c;
+                            }
+                            nameInput.setString(playerName);
+                            nameInput.setPosition(window.getSize().x / 2.0f - nameInput.getGlobalBounds().width / 2.0f, window.getSize().y / 2.0f);
+                        }
+                    }
+                    break;
+                case Options:
+                    if (event.type == sf::Event::MouseButtonPressed) {
+                        if (event.mouseButton.button == sf::Mouse::Left) {
+                            switch (optionsMenu.GetPressedItem()) {
+                                case 0:
+                                    // Handle Fonts option
+                                    break;
+                                case 1:
+                                    // Handle Speed option
+                                    break;
+                                case 2:
+                                    gameState = ShowingMenu;
+                                    break;
+                            }
+                        }
+                    } else if (event.type == sf::Event::KeyPressed) {
+                        if (event.key.code == sf::Keyboard::Up) {
+                            optionsMenu.MoveUp();
+                        } else if (event.key.code == sf::Keyboard::Down) {
+                            optionsMenu.MoveDown();
+                        } else if (event.key.code == sf::Keyboard::Return) {
+                            switch (optionsMenu.GetPressedItem()) {
+                                case 0:
+                                    // Handle Fonts option
+                                    break;
+                                case 1:
+                                    // Handle Speed option
+                                    break;
+                                case 2:
+                                    gameState = ShowingMenu;
+                                    break;
+                            }
+                        }
+                    }
+
+                case Playing:
+                    if (event.type == sf::Event::TextEntered) {
+                        if (event.text.unicode < 128) {
+                            char c = event.text.unicode;
+                            if (c == '\b') {
+                                if (!currentWord.empty()) {
+                                    currentWord.pop_back();
+                                    currentWordDisplay.setString(currentWord);
+                                }
+                            } else {
+                                currentWord += c;
                                 currentWordDisplay.setString(currentWord);
                             }
-                        } else {
-                            currentWord += c;
-                            currentWordDisplay.setString(currentWord);
                         }
                     }
-                }
+                    break;
+
+                case GameOver:
+                    // Handle GameOver event if needed
+                    break;
             }
         }
+        switch (gameState) {
+            case ShowingMenu:
+                displayScores(menu);
+                window.clear();
+                menu.draw(window);
+                window.display();
+                continue;
 
-        if (gameState == ShowingMenu) {
-            window.clear();
-            menu.draw(window);
-            window.display();
-            continue;
-        }
+            case Options:
+                window.clear();
+                optionsMenu.draw(window);
+                window.display();
+                continue;
 
-        if (gameState == Playing) {
-            elapsedTime += clock.restart().asSeconds();
-            timeSinceLastSpeedIncrease += elapsedTime;
+            case EnteringName:
+                window.clear();
+                window.draw(namePrompt);
+                window.draw(nameInput);
+                window.display();
+                continue;
 
-            if (timeSinceLastSpeedIncrease >= speedIncrementInterval) {
-                wordSpeed += speedIncrementInterval; // Increase the speed
-                timeSinceLastSpeedIncrease = 0.0f;
-            }
+            case Playing:
+                elapsedTime += clock.restart().asSeconds();
+                timeSinceLastSpeedIncrease += elapsedTime;
 
-            if (elapsedTime >= spawnInterval && words.size() < maxWords) {
-                int baseSpawnCount = 1;
-                int additionalSpawnCount = score / 10;
-                int numWordsToSpawn = std::min(maxWords - static_cast<int>(words.size()), baseSpawnCount + additionalSpawnCount);
-
-                for (int i = 0; i < numWordsToSpawn; ++i) {
-                    MovingWord newWord;
-                    newWord.text.setFont(font);
-                    newWord.text.setCharacterSize(24);
-                    newWord.text.setFillColor(sf::Color::White);
-                    newWord.text.setString(getRandomWord(csDictionary));
-                    newWord.speed = wordSpeed;
-                    newWord.x = window.getSize().x;
-                    newWord.y = rand() % (window.getSize().y - 100);
-                    words.push_back(newWord);
+                if (timeSinceLastSpeedIncrease >= speedIncrementInterval) {
+                    wordSpeed += speedIncrementInterval;
+                    timeSinceLastSpeedIncrease = 0.0f;
                 }
 
-                elapsedTime = 0.0f;
-            }
+                if (elapsedTime >= spawnInterval && words.size() < maxWords) {
+                    int baseSpawnCount = 1;
+                    int additionalSpawnCount = score / 10;
+                    int numWordsToSpawn = std::min(maxWords - static_cast<int>(words.size()), baseSpawnCount + additionalSpawnCount);
 
-            if (!words.empty()) {
-                bool wordMatched = false;
-                for (auto it = words.begin(); it != words.end(); ++it) {
-                    std::string displayedWord = it->text.getString().toAnsiString();
-                    if (currentWord == displayedWord) {
-                        words.erase(it);
-                        score++;
-                        scoreboard.setString("SCORE: " + std::to_string(score));
-                        wordMatched = true;
-                        break;
+                    for (int i = 0; i < numWordsToSpawn; ++i) {
+                        MovingWord newWord;
+                        newWord.text.setFont(font);
+                        newWord.text.setCharacterSize(24);
+                        newWord.text.setFillColor(sf::Color::White);
+                        newWord.text.setString(getRandomWord(csDictionary));
+                        newWord.speed = wordSpeed;
+                        newWord.x = window.getSize().x;
+                        newWord.y = rand() % (window.getSize().y - 100);
+                        words.push_back(newWord);
+                    }
+
+                    elapsedTime = 0.0f;
+                }
+
+                if (!words.empty()) {
+                    bool wordMatched = false;
+                    for (auto it = words.begin(); it != words.end(); ++it) {
+                        std::string displayedWord = it->text.getString().toAnsiString();
+                        if (currentWord == displayedWord) {
+                            words.erase(it);
+                            score++;
+                            scoreboard.setString("SCORE: " + std::to_string(score));
+                            wordMatched = true;
+                            break;
+                        }
+                    }
+                    if (wordMatched) {
+                        currentWord.clear();
+                        currentWordDisplay.setString(currentWord);
                     }
                 }
-                if (wordMatched) {
-                    currentWord.clear();
-                    currentWordDisplay.setString(currentWord);
-                }
-            }
 
-            for (auto it = words.begin(); it != words.end();) {
-                it->x -= it->speed * 0.05f;
-                if (it->x + it->text.getLocalBounds().width < 0) {
-                    it = words.erase(it);
-                    lives--;
-                    livesDisplay.setString("LIVES: " + std::to_string(lives));
-                    if (lives <= 0) {
-                        gameState = GameOver;
-                        break;
+                for (auto it = words.begin(); it != words.end();) {
+                    it->x -= it->speed * 0.05f;
+                    if (it->x + it->text.getLocalBounds().width < 0) {
+                        it = words.erase(it);
+                        lives--;
+                        livesDisplay.setString("LIVES: " + std::to_string(lives));
+                        if (lives <= 0) {
+                            gameState = GameOver;
+                            break;
+                        }
+                    } else {
+                        it->text.setPosition(it->x, it->y);
+                        ++it;
                     }
-                } else {
-                    it->text.setPosition(it->x, it->y);
-                    ++it;
                 }
-            }
 
-            window.clear(sf::Color::Black);
-            for (const auto& word : words) {
-                window.draw(word.text);
-            }
-            window.draw(scoreboard);
-            window.draw(livesDisplay);
-            window.draw(currentWordDisplay);
-            window.display();
-        } else if (gameState == GameOver) {
-            window.clear();
-            ScoreData newScore;
-            newScore.playerName = "Player"; // You can set this dynamically
-            newScore.score = score;
-/*            sf::Text gameOverText;
-            gameOverText.setFont(font);
-            gameOverText.setCharacterSize(50);
-            gameOverText.setFillColor(sf::Color::Red);
-            gameOverText.setString("Game Over! Final Score: " + std::to_string(score));
-            gameOverText.setPosition(window.getSize().x / 4, window.getSize().y / 2);
-            window.draw(gameOverText);
-            window.display();*/
+                window.clear(sf::Color::Black);
+                for (const auto& word : words) {
+                    window.draw(word.text);
+                }
+                window.draw(scoreboard);
+                window.draw(livesDisplay);
+                window.draw(currentWordDisplay);
+                window.display();
+                break;
 
-            updateScores(newScore);
-            displayScores(menu);
-            gameState = ShowingMenu; // Set the game state back to ShowingMenu
+            case GameOver:
+                window.clear();
+                ScoreData newScore;
+                newScore.playerName = playerName;
+                newScore.score = score;
+
+                updateScores(newScore);
+                displayScores(menu);
+                playerName.clear();
+                gameState = ShowingMenu;
+                break;
         }
-
-        // Draw the menu regardless of the game state
-        /*window.clear();
-        menu.draw(window);
-        window.display();*/
     }
 
     return 0;
 }
+
