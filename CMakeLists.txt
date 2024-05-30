@@ -29,7 +29,9 @@ FetchContent_MakeAvailable(json)
 # Add the executable
 add_executable(MonkeyTyper main.cpp Menu.cpp Menu.h
         OptionsMenu.cpp
-        OptionsMenu.h)
+        OptionsMenu.h
+        FontManager.h
+        FontManager.cpp)
 
 # Link SFML libraries to your executable
 target_link_libraries(MonkeyTyper sfml-graphics sfml-window sfml-system)

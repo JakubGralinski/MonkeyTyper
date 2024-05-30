@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <fmt/core.h>
 #include <iostream>
 #include <vector>
 #include <cstdlib>
@@ -7,6 +8,7 @@
 #include <nlohmann/json.hpp>
 #include "Menu.h"
 #include "OptionsMenu.h"
+#include "FontManager.h"
 
 using json = nlohmann::json;
 
@@ -15,7 +17,6 @@ struct MovingWord {
     float x, y;
     float speed;
 };
-
 enum GameState {
     ShowingMenu,
     EnteringName,
@@ -80,6 +81,7 @@ void displayScores(Menu& menu) {
     menu.updateScores(topScores);
 }
 
+
 int main() {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
@@ -102,12 +104,15 @@ int main() {
     std::string mainFont = config["fonts"][0];
     float wordSpeed = config["wordSpeed"];
 
+    FontManager::getInstance().loadFont(mainFont);
     sf::RenderWindow window(sf::VideoMode(screenWidth, screenHeight), "Monkey Typer");
-    sf::Font font;
-    if (!font.loadFromFile(mainFont)) {
-        std::cerr << "Failed to load font." << std::endl;
-        return 1;
-    }
+
+    int gameState = ShowingMenu;
+
+    Menu menu(window.getSize().x, window.getSize().y);
+    OptionsMenu optionsMenu(window.getSize().x, window.getSize().y);
+
+    sf::Font& font = FontManager::getInstance().getFont();
 
     sf::Text scoreboard;
     scoreboard.setFont(font);
@@ -136,10 +141,6 @@ int main() {
     nameInput.setFont(font);
     nameInput.setCharacterSize(24);
     nameInput.setPosition(screenWidth / 2.0f, screenHeight / 2.0f);
-
-    GameState gameState = ShowingMenu;
-    Menu menu(window.getSize().x, window.getSize().y);
-    OptionsMenu optionsMenu(window.getSize().x, window.getSize().y);
 
     int score = 0;
     int lives = 3;
@@ -177,7 +178,6 @@ int main() {
                                         livesDisplay.setString("LIVES: " + std::to_string(lives));
                                         break;
                                     case 2:
-                                        // Handle "Options" if necessary
                                         gameState = Options;
                                         break;
                                     case 3:
@@ -209,40 +209,19 @@ int main() {
                         }
                     }
                     break;
+
                 case Options:
                     if (event.type == sf::Event::MouseButtonPressed) {
-                        if (event.mouseButton.button == sf::Mouse::Left) {
-                            switch (optionsMenu.GetPressedItem()) {
-                                case 0:
-                                    // Handle Fonts option
-                                    break;
-                                case 1:
-                                    // Handle Speed option
-                                    break;
-                                case 2:
-                                    gameState = ShowingMenu;
-                                    break;
-                            }
-                        }
-                    } else if (event.type == sf::Event::KeyPressed) {
-                        if (event.key.code == sf::Keyboard::Up) {
-                            optionsMenu.MoveUp();
-                        } else if (event.key.code == sf::Keyboard::Down) {
-                            optionsMenu.MoveDown();
-                        } else if (event.key.code == sf::Keyboard::Return) {
-                            switch (optionsMenu.GetPressedItem()) {
-                                case 0:
-                                    // Handle Fonts option
-                                    break;
-                                case 1:
-                                    // Handle Speed option
-                                    break;
-                                case 2:
-                                    gameState = ShowingMenu;
-                                    break;
+                        if (event.mouseButton.button == sf::Mouse::Button::Left) {
+                            if (optionsMenu.GetPressedItem() == 3) {
+                                gameState = ShowingMenu;
+                            } else if (optionsMenu.isMouseOverButton(window,
+                                                                     optionsMenu.buttons[optionsMenu.GetPressedItem()])) {
+                                optionsMenu.HandleClick();
                             }
                         }
                     }
+                    break;
 
                 case Playing:
                     if (event.type == sf::Event::TextEntered) {
@@ -376,4 +355,3 @@ int main() {
 
     return 0;
 }
-
