@@ -16,7 +16,7 @@
     "/Users/jakubgralinski/CLionProjects/MonkeyTyper/fonts/Roboto-BlackItalic.ttf"
   ],
   "dictionaries": {
-    "cs": [
+    "Computer Science": [
       "algorithm", "array", "binary", "boolean", "bug", "byte", "cache", "class",
       "compiler", "database", "debug", "encryption", "error", "function", "hash",
       "integer", "interface", "loop", "memory", "object", "operator", "pointer",
@@ -40,7 +40,7 @@
       "signature", "verify", "validation", "verification", "data", "info", "information",
       "metadata", "schema", "table", "row", "column", "field", "record", "index"
     ],
-    "fruits": [
+    "Fruits": [
       "apple", "banana", "cherry", "date", "elderberry", "fig", "grape", "honeydew",
       "kiwi", "lemon", "mango", "nectarine", "orange", "papaya", "quince", "raspberry",
       "strawberry", "tangerine", "ugli", "vanilla", "watermelon", "xigua", "yellow",

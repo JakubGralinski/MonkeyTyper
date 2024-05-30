@@ -17,6 +17,7 @@ struct MovingWord {
     float x, y;
     float speed;
 };
+
 enum GameState {
     ShowingMenu,
     EnteringName,
@@ -81,7 +82,6 @@ void displayScores(Menu& menu) {
     menu.updateScores(topScores);
 }
 
-
 int main() {
     std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
@@ -100,9 +100,9 @@ int main() {
     int maxWords = config["maxWords"];
     float spawnInterval = config["spawnInterval"];
     float speedIncrementInterval = config["speedIncrementInterval"];
-    std::vector<std::string> csDictionary = config["dictionaries"]["cs"];
-    std::string mainFont = config["fonts"][0];
     float wordSpeed = config["wordSpeed"];
+    std::vector<std::string> csDictionary = config["dictionaries"]["Computer Science"].get<std::vector<std::string>>();
+    std::string mainFont = config["fonts"][0];
 
     FontManager::getInstance().loadFont(mainFont);
     sf::RenderWindow window(sf::VideoMode(screenWidth, screenHeight), "Monkey Typer");
@@ -110,7 +110,7 @@ int main() {
     int gameState = ShowingMenu;
 
     Menu menu(window.getSize().x, window.getSize().y);
-    OptionsMenu optionsMenu(window.getSize().x, window.getSize().y);
+    OptionsMenu optionsMenu(window.getSize().x, window.getSize().y, menu);
 
     sf::Font& font = FontManager::getInstance().getFont();
 
@@ -212,7 +212,7 @@ int main() {
 
                 case Options:
                     if (event.type == sf::Event::MouseButtonPressed) {
-                        if (event.mouseButton.button == sf::Mouse::Button::Left) {
+                        if (event.mouseButton.button == sf::Mouse::Left) {
                             if (optionsMenu.GetPressedItem() == 3) {
                                 gameState = ShowingMenu;
                             } else if (optionsMenu.isMouseOverButton(window,
@@ -285,8 +285,18 @@ int main() {
                         newWord.text.setFont(font);
                         newWord.text.setCharacterSize(24);
                         newWord.text.setFillColor(sf::Color::White);
-                        newWord.text.setString(getRandomWord(csDictionary));
-                        newWord.speed = wordSpeed;
+                        std::vector<std::string> dictionary = config["dictionaries"][optionsMenu.availableDictionaries[optionsMenu.currentDictionaryIndex]].get<std::vector<std::string>>();
+                        newWord.text.setString(getRandomWord(dictionary));
+
+                        // Adjust the speed based on the selected speed setting
+                        if (optionsMenu.speedOptions[optionsMenu.currentSpeedIndex] == "Slow") {
+                            newWord.speed = wordSpeed * 1;
+                        } else if (optionsMenu.speedOptions[optionsMenu.currentSpeedIndex] == "Normal") {
+                            newWord.speed = wordSpeed * 2;
+                        } else if (optionsMenu.speedOptions[optionsMenu.currentSpeedIndex] == "Fast") {
+                            newWord.speed = wordSpeed * 4.0;
+                        }
+
                         newWord.x = window.getSize().x;
                         newWord.y = rand() % (window.getSize().y - 100);
                         words.push_back(newWord);

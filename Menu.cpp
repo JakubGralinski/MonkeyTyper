@@ -1,4 +1,3 @@
-
 #include "Menu.h"
 #include <iostream>
 #include <fstream>
@@ -122,3 +121,13 @@ int Menu::getPressedItem() {
     return selectedItemIndex;
 }
 
+void Menu::updateFont(const sf::Font& newFont) {
+    font = newFont;
+    for (int i = 0; i < 4; i++) {
+        menu[i].setFont(font);
+    }
+    scoreTitleText.setFont(font);
+    for (int i = 0; i < 3; i++) {
+        scoreText[i].setFont(font);
+    }
+}

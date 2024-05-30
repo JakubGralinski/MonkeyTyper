@@ -2,3 +2,5 @@ Player 5
 Kuba 100
 
 KAFAR 17
+fruits 13
+fruits 8

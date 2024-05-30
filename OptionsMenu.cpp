@@ -3,7 +3,8 @@
 #include <fstream>
 #include <iostream>
 
-OptionsMenu::OptionsMenu(float width, float height) {
+OptionsMenu::OptionsMenu(float width, float height, Menu& menu)
+        : menu(menu) {
     font = FontManager::getInstance().getFont();
 
     std::ifstream configFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/config.json");
@@ -24,28 +25,37 @@ OptionsMenu::OptionsMenu(float width, float height) {
     }
     currentFontIndex = 0;
 
+    for (const auto& dictionary : config["dictionaries"].items()) {
+        availableDictionaries.push_back(dictionary.key());
+    }
+    currentDictionaryIndex = 0;
+
     float buttonPadding = config["buttonPadding"];
-    float buttonInitialYPosition = config["buttonInitialYPosition"];
+    float buttonHeight = 40.0f; // Assuming a fixed height for simplicity
+    float totalHeight = (buttonHeight + buttonPadding) * 4 - buttonPadding;
+    float buttonInitialYPosition = (height - totalHeight) / 2.0f;
+
     std::string buttonLabels[] = {
             "CURRENT FONT: " + extractFontName(availableFonts[currentFontIndex]),
-            "SPEED: ",
-            "DICTIONARY: ",
+            "SPEED: " + speedOptions[currentSpeedIndex],
+            "DICTIONARY: " + availableDictionaries[currentDictionaryIndex],
             "BACK"
     };
 
     for (int i = 0; i < 4; ++i) {
         buttons[i].setFont(font);
         buttons[i].setString(buttonLabels[i]);
-        buttons[i].setCharacterSize(40);
+        buttons[i].setCharacterSize(buttonHeight);
         buttons[i].setFillColor(sf::Color::White);
         buttons[i].setOrigin(buttons[i].getLocalBounds().width / 2, buttons[i].getLocalBounds().height / 2);
-        buttons[i].setPosition(sf::Vector2f(width / 2, buttonInitialYPosition + (i * (40 + buttonPadding))));
+        buttons[i].setPosition(sf::Vector2f(width / 2, buttonInitialYPosition + (i * (buttonHeight + buttonPadding))));
 
         hoverStates[i].isHovered = false;
         hoverStates[i].normalColor = sf::Color::White;
         hoverStates[i].hoverColor = hoverColor;
     }
 
+    selectedItemIndex = -1;
 }
 
 std::string OptionsMenu::extractFontName(const std::string& fontPath) {
@@ -85,16 +95,27 @@ void OptionsMenu::HandleClick() {
         return; // Invalid selection index
     }
 
-    if (selectedItemIndex == 0) { // Fonts button
-        currentFontIndex = (currentFontIndex + 1) % availableFonts.size();
-        if (FontManager::getInstance().loadFont(availableFonts[currentFontIndex])) {
-            font = FontManager::getInstance().getFont();
-            buttons[0].setString("CURRENT FONT: " + extractFontName(availableFonts[currentFontIndex]));
-            for (int i = 0; i < 4; ++i) {
-                buttons[i].setFont(font);
+    switch (selectedItemIndex) {
+        case 0:
+            currentFontIndex = (currentFontIndex + 1) % availableFonts.size();
+            if (FontManager::getInstance().loadFont(availableFonts[currentFontIndex])) {
+                font = FontManager::getInstance().getFont();
+                buttons[0].setString("CURRENT FONT: " + extractFontName(availableFonts[currentFontIndex]));
+                for (int i = 0; i < 4; ++i) {
+                    buttons[i].setFont(font);
+                }
+                menu.updateFont(font); // Update the font in the main menu
             }
-        }
-    } else if (selectedItemIndex == 3) { // Back button
-        //gameState = showingMenuState;  // Set the gameState to ShowingMenu
+            break;
+        case 1:
+            currentSpeedIndex = (currentSpeedIndex + 1) % 3;
+            buttons[1].setString("SPEED: " + speedOptions[currentSpeedIndex]);
+            break;
+        case 2:
+            currentDictionaryIndex = (currentDictionaryIndex + 1) % availableDictionaries.size();
+            buttons[2].setString("DICTIONARY: " + availableDictionaries[currentDictionaryIndex]);
+            break;
+        default:
+            std::cerr << "Error" << std::endl;
     }
 }
