@@ -8,7 +8,7 @@
   "spawnInterval": 3.0,
   "speedIncrementInterval": 0.00001,
   "menuButtonsHoverColor":  [255,0,0,255],
-  "pauseBackgroundColor": [108,122,137,5],
+  "pauseBackgroundColor": [108,122,137,10],
   "buttonPadding": 20.0,
   "buttonInitialYPosition": 200.0,
   "fonts": [

@@ -24,7 +24,8 @@ enum GameState {
     Playing,
     GameOver,
     Options,
-    Paused
+    Paused,
+    FileNameInput  // New state for file name input
 };
 
 std::string getRandomWord(std::vector<std::string>& wordList) {
@@ -204,21 +205,24 @@ int main() {
     nameInput.setCharacterSize(24);
     nameInput.setPosition(screenWidth / 2.0f, screenHeight / 2.0f);
 
-    int score = 0;
-    int lives = 3;
-    std::string currentWord;
-    std::string playerName;
+    sf::Text instructionText;
+    instructionText.setFont(font);
+    instructionText.setCharacterSize(24);
+    instructionText.setFillColor(sf::Color::White);
+    instructionText.setPosition(50, 50);
 
-    sf::Clock clock;
-    float elapsedTime = 0.0f;
-    float timeSinceLastSpeedIncrease = 0.0f;
+    sf::Text inputText;
+    inputText.setFont(font);
+    inputText.setCharacterSize(24);
+    inputText.setFillColor(sf::Color::White);
+    inputText.setPosition(50, 100);
 
-    std::vector<MovingWord> words;
-
+/*
     sf::RectangleShape pauseCanvas(sf::Vector2f(screenWidth, screenHeight));
     auto pauseColorJson = config["pauseBackgroundColor"];
     auto pauseColor = sf::Color(pauseColorJson[0], pauseColorJson[1], pauseColorJson[2], pauseColorJson[3]); // Semi-transparent overlay
     pauseCanvas.setFillColor(pauseColor); // Semi-transparent overlay
+*/
 
     sf::Text resumeText;
     resumeText.setFont(font);
@@ -233,10 +237,45 @@ int main() {
     resumeButton.setOutlineColor(sf::Color::White);
     resumeButton.setOutlineThickness(2);
 
+
+    sf::Text pauseText;
+    pauseText.setFont(font);
+    pauseText.setCharacterSize(60);
+    pauseText.setString("PAUSE");
+    pauseText.setFillColor(sf::Color::White);
+    pauseText.setOrigin(pauseText.getLocalBounds().width / 2, pauseText.getLocalBounds().height / 2);
+    pauseText.setPosition(screenWidth / 2, screenHeight / 2 - 300.f);
+
+    sf::Text infoPauseText;
+    infoPauseText.setFont(font);
+    infoPauseText.setCharacterSize(40);
+    infoPauseText.setString("Click RESUME to continue or ESC to show Menu. \n\tWarning! Game won't be saved!");
+    infoPauseText.setFillColor(sf::Color::Magenta);
+    infoPauseText.setOrigin(pauseText.getLocalBounds().width / 2, pauseText.getLocalBounds().height / 2);
+    infoPauseText.setPosition(screenWidth / 4, screenHeight / 2 - 180.f);
+
+    sf::RectangleShape pauseOverlay(sf::Vector2f(screenWidth, screenHeight));
+    //sf::RectangleShape saveOverlay(sf::Vector2f(screenWidth, screenHeight));
+    auto pauseColorJson = config["pauseBackgroundColor"];
+    auto pauseColor = sf::Color(pauseColorJson[0], pauseColorJson[1], pauseColorJson[2], pauseColorJson[3]);
+    pauseOverlay.setFillColor(pauseColor); // Semi-transparent overlay
+
+
     bool resumeButtonHovered = false;
 
-    std::string loadFileName;
-    std::string saveFileName;
+    std::string inputString;
+    bool isLoading = false;
+
+    int score = 0;
+    int lives = 3;
+    std::string currentWord;
+    std::string playerName;
+
+    sf::Clock clock;
+    float elapsedTime = 0.0f;
+    float timeSinceLastSpeedIncrease = 0.0f;
+
+    std::vector<MovingWord> words;
 
     sf::Vector2f mousePos;  // Moved initialization outside the loop
 
@@ -316,6 +355,21 @@ int main() {
                     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
                         gameState = Paused;
                     }
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::LControl)) {
+                        if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
+                            instructionText.setString("Enter a file name to load:");
+                            inputString.clear();
+                            inputText.setString(inputString);
+                            isLoading = true;
+                            gameState = FileNameInput;
+                        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+                            instructionText.setString("Enter a file name to save:");
+                            inputString.clear();
+                            inputText.setString(inputString);
+                            isLoading = false;
+                            gameState = FileNameInput;
+                        }
+                    }
                     if (event.type == sf::Event::TextEntered) {
                         if (event.text.unicode < 128) {
                             char c = event.text.unicode;
@@ -343,11 +397,43 @@ int main() {
                     }
                     break;
 
+                case FileNameInput:
+                    if (event.type == sf::Event::TextEntered) {
+                        if (event.text.unicode < 128) {
+                            char c = event.text.unicode;
+                            if (c == '\b') {
+                                if (!inputString.empty()) {
+                                    inputString.pop_back();
+                                    inputText.setString(inputString);
+                                }
+                            } else if (c == '\r' || c == '\n') {
+                                if (!inputString.empty()) {
+                                    if (isLoading) {
+                                        if (loadGameState(inputString, gameState, score, lives, currentWord, playerName, words)) {
+                                            std::cout << "Game state loaded successfully." << std::endl;
+                                        } else {
+                                            std::cout << "Failed to load game state." << std::endl;
+                                        }
+                                    } else {
+                                        saveGameState(inputString, gameState, score, lives, currentWord, playerName, words);
+                                        std::cout << "Game state saved successfully." << std::endl;
+                                    }
+                                    gameState = Playing;
+                                }
+                            } else {
+                                inputString += c;
+                                inputText.setString(inputString);
+                            }
+                        }
+                    }
+                    break;
+
                 case GameOver:
                     // Handle GameOver event if needed
                     break;
             }
         }
+
         switch (gameState) {
             case ShowingMenu:
                 displayScores(menu);
@@ -453,9 +539,12 @@ int main() {
                 break;
 
             case Paused:
-                window.clear();
-                window.draw(pauseCanvas);
+                //window.clear();
+                window.draw(pauseOverlay);
                 window.draw(resumeText);
+                window.draw(pauseOverlay);
+                window.draw(pauseText);
+                window.draw(infoPauseText);
 
                 mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
                 if (resumeText.getGlobalBounds().contains(mousePos)) {
@@ -473,6 +562,14 @@ int main() {
                 window.display();
                 break;
 
+            case FileNameInput:
+                window.clear();
+                window.draw(pauseOverlay);
+                window.draw(instructionText);
+                window.draw(inputText);
+                window.display();
+                break;
+
             case GameOver:
                 window.clear();
                 ScoreData newScore;
@@ -484,23 +581,6 @@ int main() {
                 playerName.clear();
                 gameState = ShowingMenu;
                 break;
-        }
-
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::L) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
-            std::cout << "Enter a file name to load: ";
-            std::cin >> loadFileName;
-            if (loadGameState(loadFileName, gameState, score, lives, currentWord, playerName, words)) {
-                std::cout << "Game state loaded successfully." << std::endl;
-            } else {
-                std::cout << "Failed to load game state." << std::endl;
-            }
-        }
-
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
-            std::cout << "Enter a file name to save: ";
-            std::cin >> saveFileName;
-            saveGameState(saveFileName, gameState, score, lives, currentWord, playerName, words);
-            std::cout << "Game state saved successfully." << std::endl;
         }
     }
 
