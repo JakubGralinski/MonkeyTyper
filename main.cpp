@@ -23,7 +23,8 @@ enum GameState {
     EnteringName,
     Playing,
     GameOver,
-    Options
+    Options,
+    Paused
 };
 
 std::string getRandomWord(std::vector<std::string>& wordList) {
@@ -80,6 +81,67 @@ void displayScores(Menu& menu) {
         topScores.push_back(scores[i].playerName + ": " + std::to_string(scores[i].score));
     }
     menu.updateScores(topScores);
+}
+
+void saveGameState(const std::string& fileName, int gameState, int score, int lives, const std::string& currentWord, const std::string& playerName, const std::vector<MovingWord>& words) {
+    json gameStateJson;
+    gameStateJson["gameState"] = gameState;
+    gameStateJson["score"] = score;
+    gameStateJson["lives"] = lives;
+    gameStateJson["currentWord"] = currentWord;
+    gameStateJson["playerName"] = playerName;
+
+    for (const auto& word : words) {
+        json wordJson;
+        wordJson["text"] = static_cast<std::string>(word.text.getString());
+        wordJson["x"] = word.x;
+        wordJson["y"] = word.y;
+        wordJson["speed"] = word.speed;
+        gameStateJson["words"].push_back(wordJson);
+    }
+
+    std::ofstream saveFile(fileName);
+    if (saveFile.is_open()) {
+        saveFile << gameStateJson.dump(4);
+        saveFile.close();
+    } else {
+        std::cerr << "Failed to open save file for writing." << std::endl;
+    }
+}
+
+bool loadGameState(const std::string& fileName, int& gameState, int& score, int& lives, std::string& currentWord, std::string& playerName, std::vector<MovingWord>& words) {
+    std::ifstream loadFile(fileName);
+    if (!loadFile.is_open()) {
+        std::cerr << "Failed to open save file for reading." << std::endl;
+        return false;
+    }
+
+    json gameStateJson;
+    loadFile >> gameStateJson;
+    loadFile.close();
+
+    gameState = gameStateJson["gameState"];
+    score = gameStateJson["score"];
+    lives = gameStateJson["lives"];
+    currentWord = gameStateJson["currentWord"];
+    playerName = gameStateJson["playerName"];
+
+    sf::Font& font = FontManager::getInstance().getFont();
+
+    words.clear();
+    for (const auto& wordJson : gameStateJson["words"]) {
+        MovingWord newWord;
+        newWord.text.setFont(font);
+        newWord.text.setCharacterSize(24);
+        newWord.text.setFillColor(sf::Color::White);
+        newWord.text.setString(wordJson["text"].get<std::string>());
+        newWord.x = wordJson["x"];
+        newWord.y = wordJson["y"];
+        newWord.speed = wordJson["speed"];
+        words.push_back(newWord);
+    }
+
+    return true;
 }
 
 int main() {
@@ -153,6 +215,34 @@ int main() {
 
     std::vector<MovingWord> words;
 
+    sf::RectangleShape pauseCanvas(sf::Vector2f(screenWidth, screenHeight));
+    auto pauseColorJson = config["pauseBackgroundColor"];
+    auto pauseColor = sf::Color(pauseColorJson[0], pauseColorJson[1], pauseColorJson[2], pauseColorJson[3]); // Semi-transparent overlay
+    pauseCanvas.setFillColor(pauseColor); // Semi-transparent overlay
+
+    sf::Text resumeText;
+    resumeText.setFont(font);
+    resumeText.setCharacterSize(40);
+    resumeText.setString("Resume");
+    resumeText.setOrigin(resumeText.getLocalBounds().width / 2, resumeText.getLocalBounds().height / 2);
+    resumeText.setPosition(screenWidth / 2, screenHeight / 2);
+
+    sf::RectangleShape resumeButton(sf::Vector2f(resumeText.getLocalBounds().width + 20, resumeText.getLocalBounds().height + 20));
+    resumeButton.setPosition(resumeText.getPosition().x - 10, resumeText.getPosition().y - 10);
+    resumeButton.setFillColor(sf::Color::Transparent);
+    resumeButton.setOutlineColor(sf::Color::White);
+    resumeButton.setOutlineThickness(2);
+
+    bool resumeButtonHovered = false;
+
+    std::string loadFileName;
+    std::string saveFileName;
+
+    sf::Vector2f mousePos;  // Moved initialization outside the loop
+
+    auto hoverColorJson = config["menuButtonsHoverColor"];
+    sf::Color hoverColor(hoverColorJson[0], hoverColorJson[1], hoverColorJson[2], hoverColorJson[3]);
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -164,8 +254,8 @@ int main() {
                 case ShowingMenu:
                     if (event.type == sf::Event::MouseButtonPressed) {
                         if (event.mouseButton.button == sf::Mouse::Left) {
-                            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-                            if (menu.isMouseOver(mousePos)) {
+                            sf::Vector2i mousePosInt = sf::Mouse::getPosition(window);
+                            if (menu.isMouseOver(mousePosInt)) {
                                 switch (menu.getPressedItem()) {
                                     case 1:
                                         gameState = EnteringName;
@@ -215,8 +305,7 @@ int main() {
                         if (event.mouseButton.button == sf::Mouse::Left) {
                             if (optionsMenu.GetPressedItem() == 3) {
                                 gameState = ShowingMenu;
-                            } else if (optionsMenu.isMouseOverButton(window,
-                                                                     optionsMenu.buttons[optionsMenu.GetPressedItem()])) {
+                            } else if (optionsMenu.isMouseOverButton(window, optionsMenu.buttons[optionsMenu.GetPressedItem()])) {
                                 optionsMenu.HandleClick();
                             }
                         }
@@ -224,6 +313,9 @@ int main() {
                     break;
 
                 case Playing:
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+                        gameState = Paused;
+                    }
                     if (event.type == sf::Event::TextEntered) {
                         if (event.text.unicode < 128) {
                             char c = event.text.unicode;
@@ -235,6 +327,17 @@ int main() {
                             } else {
                                 currentWord += c;
                                 currentWordDisplay.setString(currentWord);
+                            }
+                        }
+                    }
+                    break;
+
+                case Paused:
+                    if (event.type == sf::Event::MouseButtonPressed) {
+                        if (event.mouseButton.button == sf::Mouse::Left) {
+                            mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+                            if (resumeButton.getGlobalBounds().contains(mousePos)) {
+                                gameState = Playing;
                             }
                         }
                     }
@@ -349,6 +452,27 @@ int main() {
                 window.display();
                 break;
 
+            case Paused:
+                window.clear();
+                window.draw(pauseCanvas);
+                window.draw(resumeText);
+
+                mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
+                if (resumeText.getGlobalBounds().contains(mousePos)) {
+                    if (!resumeButtonHovered) {
+                        resumeButtonHovered = true;
+                        resumeText.setFillColor(hoverColor);
+                    }
+                } else {
+                    if (resumeButtonHovered) {
+                        resumeButtonHovered = false;
+                        resumeText.setFillColor(sf::Color::White);
+                    }
+                }
+
+                window.display();
+                break;
+
             case GameOver:
                 window.clear();
                 ScoreData newScore;
@@ -360,6 +484,23 @@ int main() {
                 playerName.clear();
                 gameState = ShowingMenu;
                 break;
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::L) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
+            std::cout << "Enter a file name to load: ";
+            std::cin >> loadFileName;
+            if (loadGameState(loadFileName, gameState, score, lives, currentWord, playerName, words)) {
+                std::cout << "Game state loaded successfully." << std::endl;
+            } else {
+                std::cout << "Failed to load game state." << std::endl;
+            }
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl)) {
+            std::cout << "Enter a file name to save: ";
+            std::cin >> saveFileName;
+            saveGameState(saveFileName, gameState, score, lives, currentWord, playerName, words);
+            std::cout << "Game state saved successfully." << std::endl;
         }
     }
 
