@@ -25,7 +25,7 @@ enum GameState {
     GameOver,
     Options,
     Paused,
-    FileNameInput  // New state for file name input
+    FileNameInput
 };
 
 std::string getRandomWord(std::vector<std::string>& wordList) {
@@ -194,17 +194,17 @@ int main() {
     currentWordDisplay.setCharacterSize(24);
     currentWordDisplay.setPosition(10.f, window.getSize().y - 40.f);
 
+
     sf::Text namePrompt;
     namePrompt.setFont(font);
     namePrompt.setCharacterSize(24);
     namePrompt.setString("Enter your nickname:");
-    namePrompt.setPosition(screenWidth / 2.0f - namePrompt.getGlobalBounds().width / 2.0f, screenHeight / 2.0f - 30.f);
+    namePrompt.setPosition(screenWidth / 2.0f - namePrompt.getGlobalBounds().width *1.35, screenHeight / 3.0f);
 
     sf::Text nameInput;
     nameInput.setFont(font);
     nameInput.setCharacterSize(24);
     nameInput.setPosition(screenWidth / 2.0f, screenHeight / 2.0f);
-
     sf::Text instructionText;
     instructionText.setFont(font);
     instructionText.setCharacterSize(24);
@@ -215,51 +215,41 @@ int main() {
     inputText.setFont(font);
     inputText.setCharacterSize(24);
     inputText.setFillColor(sf::Color::White);
-    inputText.setPosition(50, 100);
-
-/*
-    sf::RectangleShape pauseCanvas(sf::Vector2f(screenWidth, screenHeight));
-    auto pauseColorJson = config["pauseBackgroundColor"];
-    auto pauseColor = sf::Color(pauseColorJson[0], pauseColorJson[1], pauseColorJson[2], pauseColorJson[3]); // Semi-transparent overlay
-    pauseCanvas.setFillColor(pauseColor); // Semi-transparent overlay
-*/
+    inputText.setPosition(screenWidth/2, screenHeight/3);
 
     sf::Text resumeText;
     resumeText.setFont(font);
     resumeText.setCharacterSize(40);
     resumeText.setString("Resume");
     resumeText.setOrigin(resumeText.getLocalBounds().width / 2, resumeText.getLocalBounds().height / 2);
-    resumeText.setPosition(screenWidth / 2, screenHeight / 2);
+    resumeText.setPosition(screenWidth / 2.7f, screenHeight / 2.0f + 100);
 
     sf::RectangleShape resumeButton(sf::Vector2f(resumeText.getLocalBounds().width + 20, resumeText.getLocalBounds().height + 20));
-    resumeButton.setPosition(resumeText.getPosition().x - 10, resumeText.getPosition().y - 10);
+    resumeButton.setPosition(resumeText.getPosition().x, resumeText.getPosition().y);
     resumeButton.setFillColor(sf::Color::Transparent);
     resumeButton.setOutlineColor(sf::Color::White);
     resumeButton.setOutlineThickness(2);
 
-
     sf::Text pauseText;
     pauseText.setFont(font);
-    pauseText.setCharacterSize(60);
+    pauseText.setCharacterSize(40);
     pauseText.setString("PAUSE");
     pauseText.setFillColor(sf::Color::White);
     pauseText.setOrigin(pauseText.getLocalBounds().width / 2, pauseText.getLocalBounds().height / 2);
-    pauseText.setPosition(screenWidth / 2, screenHeight / 2 - 300.f);
+    pauseText.setPosition(screenWidth / 2.7f, screenHeight / 2.0f - 300.f);
 
     sf::Text infoPauseText;
     infoPauseText.setFont(font);
-    infoPauseText.setCharacterSize(40);
+    infoPauseText.setCharacterSize(30);
     infoPauseText.setString("Click RESUME to continue or ESC to show Menu. \n\tWarning! Game won't be saved!");
     infoPauseText.setFillColor(sf::Color::Magenta);
-    infoPauseText.setOrigin(pauseText.getLocalBounds().width / 2, pauseText.getLocalBounds().height / 2);
-    infoPauseText.setPosition(screenWidth / 4, screenHeight / 2 - 180.f);
+    infoPauseText.setOrigin(infoPauseText.getLocalBounds().width / 2, infoPauseText.getLocalBounds().height / 2);
+    infoPauseText.setPosition(screenWidth / 2.7f, screenHeight / 2.0f - 100.f);
 
     sf::RectangleShape pauseOverlay(sf::Vector2f(screenWidth, screenHeight));
-    //sf::RectangleShape saveOverlay(sf::Vector2f(screenWidth, screenHeight));
     auto pauseColorJson = config["pauseBackgroundColor"];
     auto pauseColor = sf::Color(pauseColorJson[0], pauseColorJson[1], pauseColorJson[2], pauseColorJson[3]);
-    pauseOverlay.setFillColor(pauseColor); // Semi-transparent overlay
-
+    pauseOverlay.setFillColor(pauseColor);
 
     bool resumeButtonHovered = false;
 
@@ -277,7 +267,7 @@ int main() {
 
     std::vector<MovingWord> words;
 
-    sf::Vector2f mousePos;  // Moved initialization outside the loop
+    sf::Vector2f mousePos;
 
     auto hoverColorJson = config["menuButtonsHoverColor"];
     sf::Color hoverColor(hoverColorJson[0], hoverColorJson[1], hoverColorJson[2], hoverColorJson[3]);
@@ -359,12 +349,14 @@ int main() {
                         if (sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
                             instructionText.setString("Enter a file name to load:");
                             inputString.clear();
+                            inputText.setPosition(50,80);
                             inputText.setString(inputString);
                             isLoading = true;
                             gameState = FileNameInput;
                         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
                             instructionText.setString("Enter a file name to save:");
                             inputString.clear();
+                            inputText.setPosition(50,80);
                             inputText.setString(inputString);
                             isLoading = false;
                             gameState = FileNameInput;
@@ -387,7 +379,9 @@ int main() {
                     break;
 
                 case Paused:
-                    if (event.type == sf::Event::MouseButtonPressed) {
+                    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) {
+                        gameState = ShowingMenu;
+                    } else if (event.type == sf::Event::MouseButtonPressed) {
                         if (event.mouseButton.button == sf::Mouse::Left) {
                             mousePos = static_cast<sf::Vector2f>(sf::Mouse::getPosition(window));
                             if (resumeButton.getGlobalBounds().contains(mousePos)) {
@@ -411,6 +405,8 @@ int main() {
                                     if (isLoading) {
                                         if (loadGameState(inputString, gameState, score, lives, currentWord, playerName, words)) {
                                             std::cout << "Game state loaded successfully." << std::endl;
+                                            scoreboard.setString("SCORE: " + std::to_string(score));
+                                            livesDisplay.setString("LIVES: " + std::to_string(lives));
                                         } else {
                                             std::cout << "Failed to load game state." << std::endl;
                                         }
@@ -429,7 +425,6 @@ int main() {
                     break;
 
                 case GameOver:
-                    // Handle GameOver event if needed
                     break;
             }
         }
@@ -477,7 +472,6 @@ int main() {
                         std::vector<std::string> dictionary = config["dictionaries"][optionsMenu.availableDictionaries[optionsMenu.currentDictionaryIndex]].get<std::vector<std::string>>();
                         newWord.text.setString(getRandomWord(dictionary));
 
-                        // Adjust the speed based on the selected speed setting
                         if (optionsMenu.speedOptions[optionsMenu.currentSpeedIndex] == "Slow") {
                             newWord.speed = wordSpeed * 1;
                         } else if (optionsMenu.speedOptions[optionsMenu.currentSpeedIndex] == "Normal") {
@@ -539,10 +533,8 @@ int main() {
                 break;
 
             case Paused:
-                //window.clear();
                 window.draw(pauseOverlay);
                 window.draw(resumeText);
-                window.draw(pauseOverlay);
                 window.draw(pauseText);
                 window.draw(infoPauseText);
 
