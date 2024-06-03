@@ -44,10 +44,10 @@ bool compareScores(const ScoreData& a, const ScoreData& b) {
 void saveScore(const ScoreData& scoreData) {
     std::ofstream scoreFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/scores.txt", std::ios::app);
     if (scoreFile.is_open()) {
-        scoreFile << scoreData.playerName << " " << scoreData.score << std::endl;
+        scoreFile << scoreData.playerName << " " << scoreData.score << '\n';
         scoreFile.close();
     } else {
-        std::cerr << "Failed to open score file for writing." << std::endl;
+        std::cerr << "Failed to open score file for writing." << '\n';
     }
 }
 
@@ -62,7 +62,7 @@ std::vector<ScoreData> loadScores() {
         }
         scoreFile.close();
     } else {
-        std::cerr << "Failed to open score file for reading." << std::endl;
+        std::cerr << "Failed to open score file for reading." << '\n';
     }
     return scores;
 }
@@ -78,7 +78,7 @@ void displayScores(Menu& menu) {
     std::vector<ScoreData> scores = loadScores();
     std::sort(scores.begin(), scores.end(), compareScores);
     std::vector<std::string> topScores;
-    for (size_t i = 0; i < 3 && i < scores.size(); ++i) {
+    for (int i = 0; i < 3 && i < scores.size(); ++i) {
         topScores.push_back(scores[i].playerName + ": " + std::to_string(scores[i].score));
     }
     menu.updateScores(topScores);
@@ -94,7 +94,7 @@ void saveGameState(const std::string& fileName, int gameState, int score, int li
 
     for (const auto& word : words) {
         json wordJson;
-        wordJson["text"] = static_cast<std::string>(word.text.getString());
+        wordJson["text"] = word.text.getString();
         wordJson["x"] = word.x;
         wordJson["y"] = word.y;
         wordJson["speed"] = word.speed;
@@ -106,7 +106,7 @@ void saveGameState(const std::string& fileName, int gameState, int score, int li
         saveFile << gameStateJson.dump(4);
         saveFile.close();
     } else {
-        std::cerr << "Failed to open save file for writing." << std::endl;
+        std::cerr << "Failed to open save file for writing." << '\n';
     }
 }
 
@@ -145,8 +145,7 @@ bool loadGameState(const std::string& fileName, int& gameState, int& score, int&
     return true;
 }
 
-int main() {
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+auto main() -> int {
 
     std::ifstream configFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/config.json");
     if (!configFile.is_open()) {
@@ -575,6 +574,4 @@ int main() {
                 break;
         }
     }
-
-    return 0;
 }

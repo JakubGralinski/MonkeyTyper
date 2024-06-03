@@ -59,9 +59,9 @@ OptionsMenu::OptionsMenu(float width, float height, Menu& menu)
 }
 
 std::string OptionsMenu::extractFontName(const std::string& fontPath) {
-    size_t pos = fontPath.find_last_of("/\\");
+    int pos = fontPath.find_last_of("/\\");
     std::string fileName = (pos == std::string::npos) ? fontPath : fontPath.substr(pos + 1);
-    size_t dotPos = fileName.find_last_of(".");
+    int dotPos = fileName.find_last_of(".");
     if (dotPos != std::string::npos) {
         fileName = fileName.substr(0, dotPos);
     }
