@@ -5,3 +5,18 @@ yoko 7
 yoko2 0
 A 0
 S 0
+nickname 1
+kuba 2
+mati 2
+as 0
+asd 9
+opl 1
+opl 3
+your nickname 10
+nickname 0
+@typer 3
+@typer 1
+@typer 1
+@typer 0
+@typer 0
+sad 15

@@ -1,8 +1,8 @@
-#ifndef MENU_H
-#define MENU_H
+#pragma once
 
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <string>
 
 class Menu {
 public:
@@ -12,21 +12,19 @@ public:
     bool isMouseOver(sf::Vector2i mousePos);
     void updateScores(const std::vector<std::string>& scores);
     int getPressedItem();
-    void updateFont(const sf::Font& font);
+    void updateFont(const sf::Font& newFont);
+    void goBack();
 
 private:
+    sf::Font font;
     sf::Text menu[4];
     sf::Text scoreTitleText;
     sf::Text scoreText[3];
-    sf::Font font;
-    sf::Color hoverColor;
     int selectedItemIndex;
+    int selectedOptionIndex;
     float animationTime;
-    float animationSpeed = 2.0f;  // Speed of the title animation
-    float scaleFactor = 0.1f;     // Amount to scale the title text by during animation
-    sf::Clock clock;              // Clock for timing the animation
-
-    int selectedOptionIndex;      // Track the selected menu option index
+    float animationSpeed = 1.0f;
+    float scaleFactor = 0.1f;
+    sf::Color hoverColor;
+    sf::Clock clock;
 };
-
-#endif // MENU_H

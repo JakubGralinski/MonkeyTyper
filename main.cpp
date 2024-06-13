@@ -113,7 +113,7 @@ void saveGameState(const std::string& fileName, int gameState, int score, int li
 bool loadGameState(const std::string& fileName, int& gameState, int& score, int& lives, std::string& currentWord, std::string& playerName, std::vector<MovingWord>& words) {
     std::ifstream loadFile(fileName);
     if (!loadFile.is_open()) {
-        std::cerr << "Failed to open save file for reading." << std::endl;
+        std::cerr << "Failed to open save file for reading." << '\n';
         return false;
     }
 
@@ -149,7 +149,7 @@ auto main() -> int {
 
     std::ifstream configFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/config.json");
     if (!configFile.is_open()) {
-        std::cerr << "Failed to open config file." << std::endl;
+        std::cerr << "Failed to open config file." <<'\n';
         return 1;
     }
 
@@ -331,7 +331,7 @@ auto main() -> int {
                 case Options:
                     if (event.type == sf::Event::MouseButtonPressed) {
                         if (event.mouseButton.button == sf::Mouse::Left) {
-                            if (optionsMenu.GetPressedItem() == 3) {
+                            if (optionsMenu.GetPressedItem() == 4) {
                                 gameState = ShowingMenu;
                             } else if (optionsMenu.isMouseOverButton(window, optionsMenu.buttons[optionsMenu.GetPressedItem()])) {
                                 optionsMenu.HandleClick();
@@ -369,7 +369,7 @@ auto main() -> int {
                                     currentWord.pop_back();
                                     currentWordDisplay.setString(currentWord);
                                 }
-                            } else {
+                            } else  if(c != '\r' || c != '\n') {
                                 currentWord += c;
                                 currentWordDisplay.setString(currentWord);
                             }
@@ -415,7 +415,7 @@ auto main() -> int {
                                     }
                                     gameState = Playing;
                                 }
-                            } else {
+                            } else{
                                 inputString += c;
                                 inputText.setString(inputString);
                             }

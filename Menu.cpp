@@ -97,6 +97,7 @@ void Menu::draw(sf::RenderWindow &window) {
         window.draw(scoreText[i]);
     }
 }
+
 bool Menu::isMouseOver(sf::Vector2i mousePos) {
     for (int i = 1; i < 4; i++) {
         if (menu[i].getGlobalBounds().contains(static_cast<sf::Vector2f>(mousePos))) {
@@ -131,3 +132,4 @@ void Menu::updateFont(const sf::Font& newFont) {
         scoreText[i].setFont(font);
     }
 }
+
