@@ -5,14 +5,14 @@
 
 using json = nlohmann::json;
 
-Menu::Menu(float width, float height) {
+Menu::Menu(float width) {
     if (!font.loadFromFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/fonts/FiraCode-Bold.ttf")) {
-        // Handle error
+        std::cerr <<"Error loading font"<< '\n';
     }
 
     std::ifstream configFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/config.json");
     if (!configFile.is_open()) {
-        std::cerr << "Failed to open config file." << std::endl;
+        std::cerr << "Failed to open config file." << '\n';
     }
     json config;
     configFile >> config;
@@ -21,6 +21,78 @@ Menu::Menu(float width, float height) {
     float buttonPadding = config["buttonPadding"];
     float buttonInitialYPosition = config["buttonInitialYPosition"];
     configFile.close();
+
+    //Using help of CHAT GPT to create title
+    //Create a Title like in Terraria.
+    //menu[0].setScale(0.2, 0.2);
+    //menu[0].setPosition(window.getSize().x / 2, menu[0].getPosition().y);
+    //
+    //To create a title in a style similar to Terraria's title screen using C++ and SFML, you need to follow these steps. This example assumes you have a basic SFML setup with a window and a menu texture loaded.
+    //1. Load the Font: First, you need to load the font that you'll use for the title.
+    //2. Create the Text Object: Then, create an SFML Text object for the title.
+    //3. Set the Scale and Position: Adjust the scale and position as specified in your code snippet.
+    //4. Draw the Text: Finally, draw the text in the window.
+    //Here's a complete example demonstrating how to do this:
+    //cpp
+    //
+    //Copy code
+    //#include <SFML/Graphics.hpp>
+    //
+    //int main() {
+    //    // Create the window
+    //    sf::RenderWindow window(sf::VideoMode(800, 600), "Terraria-Style Title");
+    //
+    //    // Load the font
+    //    sf::Font font;
+    //    if (!font.loadFromFile("path/to/your/font.ttf")) {
+    //        // Handle error
+    //        return -1;
+    //    }
+    //
+    //    // Create the title text
+    //    sf::Text title;
+    //    title.setFont(font);
+    //    title.setString("Terraria-Style Title");
+    //    title.setCharacterSize(100); // Adjust size as needed
+    //    title.setFillColor(sf::Color::White);
+    //    title.setScale(0.2f, 0.2f); // Set scale to 20%
+    //    title.setPosition(window.getSize().x / 2, title.getPosition().y); // Center horizontally
+    //
+    //    // Center the title horizontally (adjust position to account for scaling)
+    //    sf::FloatRect titleBounds = title.getLocalBounds();
+    //    title.setOrigin(titleBounds.width / 2, titleBounds.height / 2);
+    //    title.setPosition(window.getSize().x / 2, 100); // Adjust y-position as needed
+    //
+    //    // Main loop
+    //    while (window.isOpen()) {
+    //        sf::Event event;
+    //        while (window.pollEvent(event)) {
+    //            if (event.type == sf::Event::Closed) {
+    //                window.close();
+    //            }
+    //        }
+    //
+    //        // Clear the window
+    //        window.clear(sf::Color::Black);
+    //
+    //        // Draw the title
+    //        window.draw(title);
+    //
+    //        // Display the window contents
+    //        window.display();
+    //    }
+    //
+    //    return 0;
+    //}
+    //Explanation:
+    //1. Loading the Font: Make sure to replace "path/to/your/font.ttf" with the actual path to your font file.
+    //2. Creating the Text Object: sf::Text title creates the text object for your title. The font, string, character size, and color are set.
+    //3. Setting Scale and Position:
+    //    * title.setScale(0.2f, 0.2f); scales the text down to 20% of its original size.
+    //    * title.setPosition(window.getSize().x / 2, 100); sets the position to the center horizontally and 100 pixels down from the top of the window.
+    //    * title.setOrigin(titleBounds.width / 2, titleBounds.height / 2); centers the origin of the text for proper horizontal alignment.
+    //4. Main Loop: The main loop handles events and draws the title text each frame.
+    //This example sets up a simple window with a centered title, scaled to 20% of its original size, similar to the Terraria title style. Adjust the title.setCharacterSize, title.setFillColor, and title.setPosition values to better match the Terraria style as needed.
 
     menu[0].setFont(font);
     menu[0].setFillColor(sf::Color::Yellow);

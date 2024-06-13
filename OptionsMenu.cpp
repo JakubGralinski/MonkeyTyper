@@ -11,7 +11,7 @@ OptionsMenu::OptionsMenu(float width, float height, Menu& menu)
 
     std::ifstream configFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/config.json");
     if (!configFile.is_open()) {
-        std::cerr << "Failed to open config file." << std::endl;
+        std::cerr << "Failed to open config file." << '\n';
         return;
     }
 
@@ -144,6 +144,6 @@ void OptionsMenu::HandleClick() {
             break;
             break;
         default:
-            std::cerr << "Error" << std::endl;
+            std::cerr << "Error" << '\n';
     }
 }

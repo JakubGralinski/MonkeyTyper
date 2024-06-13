@@ -6,7 +6,7 @@
 
 class Menu {
 public:
-    Menu(float width, float height);
+    Menu(float width);
     ~Menu();
     void draw(sf::RenderWindow &window);
     bool isMouseOver(sf::Vector2i mousePos);

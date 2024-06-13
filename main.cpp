@@ -3,7 +3,6 @@
 #include <iostream>
 #include <vector>
 #include <cstdlib>
-#include <ctime>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include "Menu.h"
@@ -163,6 +162,87 @@ auto main() -> int {
     float spawnInterval = config["spawnInterval"];
     float speedIncrementInterval = config["speedIncrementInterval"];
     float wordSpeed = config["wordSpeed"];
+    //Using ChatGPT Create a vector of std::string as a dictionary of cs words
+    //Sure, here's how you can create a vector of std::string in C++ that serves as a dictionary of computer science (CS) words:#include <iostream>
+    //#include <vector>
+    //#include <string>
+    //
+    //int main() {
+    //    std::vector<std::string> csDictionary = {
+   /* "algorithm", "array", "binary", "boolean", "bug", "byte", "cache", "class",
+            "compiler", "database", "debug", "encryption", "error", "function", "hash",
+            "integer", "interface", "loop", "memory", "object", "operator", "pointer",
+            "protocol", "query", "recursion", "runtime", "script", "stack", "syntax",
+            "thread", "variable", "vector", "virtual", "web", "server", "client", "router",
+            "firewall", "packet", "SQL", "Python", "Java", "JavaScript", "HTML", "CSS",
+            "API", "framework", "password", "login", "logout", "network", "login", "cloud",
+            "data", "debugger", "exception", "compile", "build", "deploy", "update",
+            "install", "download", "upload", "connect", "disconnect", "binary", "decimal",
+            "hexadecimal", "link", "file", "folder", "directory", "path", "search",
+            "filter", "sort", "order", "open", "close", "read", "write", "execute",
+            "admin", "user", "group", "permission", "access", "backup", "restore",
+            "recover", "monitor", "control", "status", "report", "log", "entry", "exit",
+            "start", "stop", "pause", "resume", "restart", "shutdown", "reboot", "timeout",
+            "retry", "success", "failure", "error", "warning", "alert", "notification",
+            "message", "chat", "email", "address", "port", "domain", "website", "url",
+            "http", "https", "ftp", "ssh", "telnet", "ping", "traceroute", "request",
+            "response", "header", "cookie", "session", "token", "authentication",
+            "authorization", "security", "firewall", "proxy", "vpn", "encryption",
+            "decryption", "hashing", "checksum", "certificate", "key", "public", "private",
+            "signature", "verify", "validation", "verification", "data", "info", "information",
+            "metadata", "schema", "table", "row", "column", "field", "record", "index"*/
+    //    };
+
+    //
+    //    // Output the dictionary
+    //    for (const auto& word : csDictionary) {
+    //        std::cout << word << std::endl;
+    //    }
+    //
+    //    return 0;
+    //}This code snippet creates a vector of std::string with some common CS words and then prints each word to the console. You can add more words to the vector as needed.
+    //Do the same but with fruits
+    //#include <iostream>
+    //#include <vector>
+    //#include <string>
+    //
+    //int main() {
+    //    std::vector<std::string> fruits = {
+    //        "Apple",
+    //        "Banana",
+    //        "Cherry",
+    //        "Date",
+    //        "Elderberry",
+    //        "Fig",
+    //        "Grape",
+    //        "Honeydew",
+    //        "Indian Fig",
+    //        "Jackfruit",
+    //        "Kiwi",
+    //        "Lemon",
+    //        "Mango",
+    //        "Nectarine",
+    //        "Orange",
+    //        "Papaya",
+    //        "Quince",
+    //        "Raspberry",
+    //        "Strawberry",
+    //        "Tangerine",
+    //        "Ugli Fruit",
+    //        "Vine Peach",
+    //        "Watermelon",
+    //        "Xigua",
+    //        "Yellow Passion Fruit",
+    //        "Zucchini" // Note: Botanically, zucchini is a fruit, though commonly considered a vegetable
+    //    };
+    //
+    //    // Output the fruits
+    //    for (const auto& fruit : fruits) {
+    //        std::cout << fruit << std::endl;
+    //    }
+    //
+    //    return 0;
+    //} This program creates a vector named fruits containing names of various fruits and prints each fruit to the console.
     std::vector<std::string> csDictionary = config["dictionaries"]["Computer Science"].get<std::vector<std::string>>();
     std::string mainFont = config["fonts"][0];
 
@@ -171,7 +251,7 @@ auto main() -> int {
 
     int gameState = ShowingMenu;
 
-    Menu menu(window.getSize().x, window.getSize().y);
+    Menu menu(window.getSize().x);
     OptionsMenu optionsMenu(window.getSize().x, window.getSize().y, menu);
 
     sf::Font& font = FontManager::getInstance().getFont();
@@ -403,15 +483,15 @@ auto main() -> int {
                                 if (!inputString.empty()) {
                                     if (isLoading) {
                                         if (loadGameState(inputString, gameState, score, lives, currentWord, playerName, words)) {
-                                            std::cout << "Game state loaded successfully." << std::endl;
+                                            std::cout << "Game state loaded successfully." << '\n';
                                             scoreboard.setString("SCORE: " + std::to_string(score));
                                             livesDisplay.setString("LIVES: " + std::to_string(lives));
                                         } else {
-                                            std::cout << "Failed to load game state." << std::endl;
+                                            std::cout << "Failed to load game state." << '\n';
                                         }
                                     } else {
                                         saveGameState(inputString, gameState, score, lives, currentWord, playerName, words);
-                                        std::cout << "Game state saved successfully." << std::endl;
+                                        std::cout << "Game state saved successfully." << '\n';
                                     }
                                     gameState = Playing;
                                 }
