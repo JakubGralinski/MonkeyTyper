@@ -6,7 +6,7 @@
 #include <nlohmann/json.hpp>
 
 OptionsMenu::OptionsMenu(float width, float height, Menu& menu)
-        : menu(menu), currentSpeedIndex(1), currentSizeIndex(1) { // Initialize indices
+        : menu(menu), currentSpeedIndex(1), currentSizeIndex(1) {
     font = FontManager::getInstance().getFont();
 
     std::ifstream configFile("/Users/jakubgralinski/CLionProjects/MonkeyTyper/config.json");
@@ -33,7 +33,7 @@ OptionsMenu::OptionsMenu(float width, float height, Menu& menu)
     currentDictionaryIndex = 0;
 
     float buttonPadding = config["buttonPadding"];
-    float buttonHeight = 40.0f; // Assuming a fixed height for simplicity
+    float buttonHeight = 40.0f;
     float totalHeight = (buttonHeight + buttonPadding) * 4 - buttonPadding;
     float buttonInitialYPosition = (height - totalHeight) / 2.0f;
 
@@ -141,7 +141,6 @@ void OptionsMenu::HandleClick() {
                 buttons[i].setCharacterSize(sizeMap[sizeOptions[currentSizeIndex]]);
                 buttons[i].setOrigin(buttons[i].getLocalBounds().width / 2, buttons[i].getLocalBounds().height / 2); // Re-center after size change
             }
-            break;
             break;
         default:
             std::cerr << "Error" << '\n';
